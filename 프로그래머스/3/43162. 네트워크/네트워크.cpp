@@ -12,13 +12,13 @@ int answer = 0;
 
 void dfs(const vector<vector<int>>& computers, int startNode)
 {
-    if (visited[startNode] == true) return;
+    if (visited[startNode]) return;
 
     visited[startNode] = true;
 
     for (int i = 0; i < computers.size(); i++)
     {
-        if (computers[startNode][i] == 1)
+        if (computers[startNode][i])
         {
             dfs(computers, i);
         }
@@ -27,9 +27,9 @@ void dfs(const vector<vector<int>>& computers, int startNode)
 
 int solution(int n, vector<vector<int>> computers) 
 {
-    for (int i = 0; i < computers.size(); i++)
+    for (int i = 0; i < n; i++)
     {
-        if (visited[i] == false)
+        if (!visited[i])
         {
             dfs(computers, i);
             answer++;
