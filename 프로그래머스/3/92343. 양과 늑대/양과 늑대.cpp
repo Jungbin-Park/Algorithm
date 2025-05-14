@@ -6,27 +6,29 @@ using namespace std;
 vector<vector<int>> tree;
 vector<bool> visited;
 
-int answer = 0;
+int n = 0, answer = 0;
 
 void dfs(const vector<int>& info, vector<int> cur)
 {
     int sheep = 0, wolf = 0;
 
+    // 현재 경로에서 카운팅
     for (int c : cur)
     {
-        if(info[c] == 1) wolf++;
+        if (info[c] == 1) wolf++;
         else sheep++;
     }
 
-    if (wolf >= sheep) return;
+    // 늑대가 같거나 많으면 리턴
+    if (sheep <= wolf) return;
 
     answer = max(answer, sheep);
 
     for (int i = 0; i < cur.size(); i++)
     {
-        int curNode = cur[i];
+        int node = cur[i];
 
-        for (const auto& neighbor : tree[curNode])
+        for (int neighbor : tree[node])
         {
             if (visited[neighbor]) continue;
 
@@ -37,16 +39,22 @@ void dfs(const vector<int>& info, vector<int> cur)
             visited[neighbor] = false;
         }
     }
+    
 }
 
 int solution(vector<int> info, vector<vector<int>> edges) 
 {
-    tree.resize(info.size());
-    visited.resize(info.size());
+    n = info.size();
 
-    for (const auto& e : edges)
+    tree.resize(n);
+    visited.resize(n);
+
+    for (int i = 0; i < edges.size(); i++)
     {
-        tree[e[0]].push_back(e[1]);
+        int node = edges[i][0];
+        int neighbor = edges[i][1];
+
+        tree[node].push_back(neighbor);
     }
 
     visited[0] = true;
