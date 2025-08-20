@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <vector>
 #include <queue>
 
@@ -7,96 +6,81 @@ using namespace std;
 
 struct Point
 {
-    int y, x;
-    int score;
-
-    bool operator==(const Point& other) const
-    {
-        return y == other.y && x == other.x;
-    }
-
-    Point operator+(const Point& other) const
-    {
-        return Point(y + other.y, x + other.x);
-    }
-
-    Point(int _y, int _x, int _score = 0)
-        : y(_y)
-        , x(_x)
-        , score(_score) 
-    {}
+	int y, x, cnt;
 };
 
-bool IsValid(const Point& _point, const int& _height, const int& _width)
+vector<pair<int, int>> direction = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
+
+int n, m;
+
+bool CanMove(int y, int x, vector<string>& maps, vector<vector<bool>>& visited)
 {
-    return (_point.y >= 0 && _point.y < _height && _point.x >= 0 && _point.x < _width);
+	if (y >= 0 && y < n && x >= 0 && x < m &&
+		maps[y][x] != 'X' && !visited[y][x])
+		return true;
+
+	return false;
 }
 
-vector<Point> direction = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
-
-int height, width;
-
-int bfs(char _start, char _end, vector<string>& maps)
+int bfs(char start, char end, vector<string>& maps)
 {
-    vector<vector<bool>> visited(height, vector<bool>(width, false));
-    queue<Point> q;
+	queue<Point> q;
+	vector<vector<bool>> visited(n, vector<bool>(m, false));
 
-    Point start(0, 0), end(0, 0);
+	// start 큐에 추가
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < m; j++)
+		{
+			if (maps[i][j] == start)
+			{
+				q.push({ i, j, 0 });
+				visited[i][j] = true;
+				break;
+			}
+		}
+	}
 
-    // 시작 - 끝 지점 좌표로 변환
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width; j++)
-        {
-            if (maps[i][j] == _start) start = { i, j };
-            if (maps[i][j] == _end) end = { i, j };
-        }
-    }
+	while (!q.empty())
+	{
+		Point now = q.front();
+		q.pop();
 
-    q.push(start);
+		if (maps[now.y][now.x] == end)
+		{
+			return now.cnt;
+		}
 
-    while (!q.empty())
-    {
-        Point now = q.front();
-        q.pop();
+		// 상하좌우 체크
+		for (int i = 0; i < 4; i++)
+		{
+			int ny = now.y + direction[i].first;
+			int nx = now.x + direction[i].second;
 
-        if (now == end)
-        {
-            return now.score;
-        }
+			if (CanMove(ny, nx, maps, visited))
+			{
+				q.push({ ny, nx, now.cnt + 1 });
+				visited[ny][nx] = true;
+			}
+		}
+	}
 
-        // 상하좌우 갈 수 있는 타일 체크
-        for (int i = 0; i < 4; i++)
-        {
-            Point next = now + direction[i];
-
-            // 벽이 아니고 방문한 적 없는 타일이면
-            if (IsValid(next, height, width) && maps[next.y][next.x] != 'X' && !visited[next.y][next.x])
-            {
-                // 큐에 삽입 + 방문 체크
-                next.score += now.score + 1;
-                q.push(next);
-                visited[next.y][next.x] = true;
-            }
-        }
-    }
-
-    return 0;
+	return -1;
 }
-
 
 int solution(vector<string> maps)
 {
-    int answer = 0;
+	int result = 0;
 
-    height = maps.size();
-    width = maps[0].length();
+	n = maps.size();
+	m = maps[0].size();
 
-    int distanceSToL = bfs('S', 'L', maps);
+	int distSToL = bfs('S', 'L', maps);
+	int distLToE = bfs('L', 'E', maps);
 
-    int distanceLToE = bfs('L', 'E', maps);
+	if (distSToL == -1 || distLToE == -1) return -1;
 
-    if (distanceSToL == 0 || distanceLToE == 0) return -1;
+	result = distSToL + distLToE;
 
-    return distanceSToL + distanceLToE;
+	return result;
 }
