@@ -1,73 +1,78 @@
-#include<vector>
-#include<queue>
+#include <iostream>
+#include <vector>
+#include <queue>
+
 using namespace std;
 
 struct Point
 {
-    int y, x;
-    
-    Point operator+(const Point& other) const 
-    {
-        return Point(y + other.y, x + other.x);
-    }
-
-    bool operator==(const Point& other) const
-    {
-        if (y == other.y && x == other.x)
-            return true;
-        return false;
-    }
-
-    Point(int _y, int _x) 
-        : y(_y)
-        , x(_x) 
-    {}
+	int y, x;
+	int count;
 };
 
+int n, m;
+
+// 상하좌우
+vector<vector<int>> direction = { {1, 0}, {-1, 0}, {0, -1}, {0, 1} };
+
 queue<Point> q;
-vector<Point> direction = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+
+bool CanMove(int y, int x, const vector<vector<int>>& maps, const vector<vector<bool>>& visited)
+{
+	// 맵의 범위를 초과하지 않고 벽이 아니고 방문하지 않은 타일이면 통과
+	if (y >= 0 && y < n && x >= 0 && x < m &&
+		maps[y][x] != 0 && !visited[y][x])
+		return true;
+
+	return false;
+}
+
+
+int bfs(int y, int x, const vector<vector<int>>& maps)
+{
+	vector<vector<bool>> visited(n, vector<bool>(m, false));
+
+	visited[y][x] = true;
+	
+	while (!q.empty())
+	{
+		Point now = q.front();
+		q.pop();
+
+		if (now.y == n-1 && now.x == m-1)
+		{
+			return now.count;
+		}
+
+		// 상하좌우 체크
+		for (int i = 0; i < 4; i++)
+		{
+			int ny = now.y + direction[i][0];
+			int nx = now.x + direction[i][1];
+
+			// 갈 수 있는 타일이면 큐에 추가, 방문 체크
+			if (CanMove(ny, nx, maps, visited))
+			{
+				q.push({ ny, nx, now.count + 1 });
+				visited[ny][nx] = true;
+			}
+		}
+	}
+
+	return -1;
+}
 
 int solution(vector<vector<int>> maps)
 {
-    int answer = 0;
+	int result = 0;
 
-    int height = maps.size();
-    int width = maps[0].size();
+	n = maps.size();
+	m = maps[0].size();
 
-    Point start = { 0, 0 };
-    Point end = { height - 1, width - 1 };
-    
-    q.push(start);
+	// 플레이어 (0, 0), 상대 (n, m)
+	q.push({ 0, 0, 1 });
+	result = bfs(0, 0, maps);
 
-    while (!q.empty())
-    {
-        // 큐에서 빼냄
-        Point point = q.front();
 
-        if (point == end)
-        {
-            answer = maps[point.y][point.x];
-            return answer;
-        }
-        
-        q.pop();
-
-        // 인접한 타일 중, 갈 수 있는 타일 체크
-        for (int i = 0; i < direction.size(); i++)
-        {
-            Point nextPoint = point + direction[i];
-            if (nextPoint.y >= 0 && nextPoint.y < height && nextPoint.x >= 0 && nextPoint.x < width)
-            {
-                // 큐에 삽입, 방문 체크
-                if (maps[nextPoint.y][nextPoint.x] == 1)
-                {
-                    q.push(nextPoint);
-                    maps[nextPoint.y][nextPoint.x] += maps[point.y][point.x];
-                }
-            }
-        }
-        
-    }
-
-    return answer = -1;
+	return result;
 }
